@@ -1,6 +1,7 @@
-import 'package:architecture_samples_shopping_app/models/item_model.dart';
+import 'package:architecture_samples_shopping_app/CartProvider.dart';
 import 'package:architecture_samples_shopping_app/pages/cart_page.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CatalogPage extends StatefulWidget {
   @override
@@ -8,12 +9,10 @@ class CatalogPage extends StatefulWidget {
 }
 
 class _CatalogPageState extends State<CatalogPage> {
-  final List<Item> catalog = Item.catalog;
-
-  List<Item> saved = List<Item>();
-
   @override
   Widget build(BuildContext context) {
+    CartProvider cartProvider = Provider.of<CartProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Catalog"),
@@ -24,18 +23,12 @@ class _CatalogPageState extends State<CatalogPage> {
               IconButton(
                 icon: Icon(Icons.shopping_cart),
                 onPressed: () {
-                  Navigator.push<List<Item>>(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CartPage(
-                        items: saved,
-                      ),
+                      builder: (context) => CartPage(),
                     ),
-                  ).then((List<Item> items) {
-                    setState(() {
-                      saved = items;
-                    });
-                  });
+                  );
                 },
               ),
               Positioned(
@@ -51,7 +44,7 @@ class _CatalogPageState extends State<CatalogPage> {
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.all(1.0),
-                      child: Text("${saved.length}"),
+                      child: Text("${cartProvider.saved.length}"),
                     ),
                   ),
                 ),
@@ -61,10 +54,10 @@ class _CatalogPageState extends State<CatalogPage> {
         ],
       ),
       body: ListView.builder(
-        itemCount: catalog.length,
+        itemCount: cartProvider.catalog.length,
         itemBuilder: (context, index) {
-          final item = catalog[index];
-          final alreadySaved = saved.contains(item);
+          final item = cartProvider.catalog[index];
+          final alreadySaved = cartProvider.saved.contains(item);
           return ListTile(
             title: Text(
               item.name,
@@ -77,13 +70,11 @@ class _CatalogPageState extends State<CatalogPage> {
                   ? Icons.remove_shopping_cart
                   : Icons.add_shopping_cart),
               onPressed: () {
-                setState(() {
-                  if (alreadySaved) {
-                    saved.remove(item);
-                  } else {
-                    saved.add(item);
-                  }
-                });
+                if (alreadySaved) {
+                  cartProvider.removeItem(item);
+                } else {
+                  cartProvider.addItem(item);
+                }
               },
             ),
           );

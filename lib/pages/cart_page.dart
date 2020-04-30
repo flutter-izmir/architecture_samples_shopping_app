@@ -1,19 +1,19 @@
-import 'package:architecture_samples_shopping_app/models/item_model.dart';
+import 'package:architecture_samples_shopping_app/CartProvider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CartPage extends StatefulWidget {
-  CartPage({@required this.items});
-
-  final List<Item> items;
+  CartPage();
 
   @override
   _CartPageState createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
-  List<Item> get items => widget.items;
   @override
   Widget build(BuildContext context) {
+    CartProvider cartProvider = Provider.of<CartProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.yellow[100],
       appBar: AppBar(
@@ -22,7 +22,7 @@ class _CartPageState extends State<CartPage> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context, items);
+            Navigator.pop(context);
           },
         ),
       ),
@@ -32,17 +32,15 @@ class _CartPageState extends State<CartPage> {
         children: <Widget>[
           Expanded(
             child: ListView.builder(
-              itemCount: items.length,
+              itemCount: cartProvider.saved.length,
               itemBuilder: (context, index) {
-                final item = items[index];
+                final item = cartProvider.saved[index];
                 return ListTile(
                   title: Text(item.name),
                   trailing: IconButton(
                     icon: Icon(Icons.clear),
                     onPressed: () {
-                      setState(() {
-                        items.removeAt(index);
-                      });
+                      cartProvider.removeItem(item);
                     },
                   ),
                 );
@@ -58,7 +56,7 @@ class _CartPageState extends State<CartPage> {
             child: Container(
               height: 100,
               child: Text(
-                "Total: ${calculateTotal(items)}",
+                "Total: ${cartProvider.totalPrice}",
                 style: TextStyle(fontSize: 40.0, color: Colors.blue[900]),
               ),
             ),
@@ -66,11 +64,5 @@ class _CartPageState extends State<CartPage> {
         ],
       ),
     );
-  }
-
-  double calculateTotal(List<Item> items) {
-    return items
-        .map((item) => item.price)
-        .fold(0.0, (price1, price2) => price1 + price2);
   }
 }
