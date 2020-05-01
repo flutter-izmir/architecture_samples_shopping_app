@@ -1,17 +1,13 @@
-import 'package:architecture_samples_shopping_app/models/item_model.dart';
+import 'package:architecture_samples_shopping_app/blocs/cart/cart_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class CartPage extends StatefulWidget {
-  CartPage({@required this.items});
-
-  final List<Item> items;
-
   @override
   _CartPageState createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
-  List<Item> get items => widget.items;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,58 +15,63 @@ class _CartPageState extends State<CartPage> {
       appBar: AppBar(
         elevation: 0.0,
         title: Text("My Cart"),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context, items);
-          },
-        ),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return ListTile(
-                  title: Text(item.name),
-                  trailing: IconButton(
-                    icon: Icon(Icons.clear),
-                    onPressed: () {
-                      setState(() {
-                        items.removeAt(index);
-                      });
+      body: BlocBuilder<CartBloc, CartState>(
+        builder: (context, state) {
+          if (state is CartLoading) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (state is CartLoaded) {
+            final cart = state.cart;
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: cart.length,
+                    itemBuilder: (context, index) {
+                      final item = cart[index];
+                      return ListTile(
+                        title: Text(item.name),
+                        trailing: IconButton(
+                          icon: Icon(Icons.clear),
+                          onPressed: () =>
+                              BlocProvider.of<CartBloc>(context).add(
+                            RemoveCart(item: item),
+                          ),
+                        ),
+                      );
                     },
                   ),
-                );
-              },
-            ),
-          ),
-          Divider(
-            color: Colors.pink[700],
-            thickness: 5,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              height: 100,
-              child: Text(
-                "Total: ${calculateTotal(items)}",
-                style: TextStyle(fontSize: 40.0, color: Colors.blue[900]),
-              ),
-            ),
-          )
-        ],
+                ),
+                Divider(
+                  color: Colors.pink[700],
+                  thickness: 5,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Container(
+                    height: 100,
+                    child: Text(
+                      "${state.totalPrice}",
+                      style: TextStyle(fontSize: 40.0, color: Colors.blue[900]),
+                    ),
+                  ),
+                )
+              ],
+            );
+          }
+          if (state is CartError) {
+            return Center(
+              child: Text("An error occurred"),
+            );
+          }
+          return Container();
+        },
       ),
     );
-  }
-
-  double calculateTotal(List<Item> items) {
-    return items
-        .map((item) => item.price)
-        .fold(0.0, (price1, price2) => price1 + price2);
   }
 }
