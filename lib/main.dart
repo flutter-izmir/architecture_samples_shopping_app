@@ -1,5 +1,5 @@
 import 'package:architecture_samples_shopping_app/blocs/cart/cart_bloc.dart';
-import 'package:architecture_samples_shopping_app/blocs/catalog/bloc.dart';
+import 'package:architecture_samples_shopping_app/blocs/catalog/catalog_bloc.dart';
 import 'package:architecture_samples_shopping_app/pages/catalog_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
