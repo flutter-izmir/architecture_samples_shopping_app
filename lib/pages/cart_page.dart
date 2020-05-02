@@ -1,19 +1,20 @@
-import 'package:architecture_samples_shopping_app/models/item_model.dart';
+import 'package:architecture_samples_shopping_app/stores/cart/cart_store.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:provider/provider.dart';
 
 class CartPage extends StatefulWidget {
-  CartPage({@required this.items});
-
-  final List<Item> items;
+  CartPage();
 
   @override
   _CartPageState createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
-  List<Item> get items => widget.items;
   @override
   Widget build(BuildContext context) {
+    final _cartStore = Provider.of<Cart>(context);
+
     return Scaffold(
       backgroundColor: Colors.yellow[100],
       appBar: AppBar(
@@ -22,7 +23,7 @@ class _CartPageState extends State<CartPage> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context, items);
+            Navigator.pop(context);
           },
         ),
       ),
@@ -31,46 +32,42 @@ class _CartPageState extends State<CartPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Expanded(
-            child: ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return ListTile(
-                  title: Text(item.name),
-                  trailing: IconButton(
-                    icon: Icon(Icons.clear),
-                    onPressed: () {
-                      setState(() {
-                        items.removeAt(index);
-                      });
-                    },
-                  ),
-                );
-              },
-            ),
+            child: Observer(builder: (_) {
+              return ListView.builder(
+                itemCount: _cartStore.cart.length,
+                itemBuilder: (context, index) {
+                  final item = _cartStore.cart[index];
+                  return ListTile(
+                    title: Text(item.name),
+                    trailing: IconButton(
+                      icon: Icon(Icons.clear),
+                      onPressed: () {
+                        _cartStore.removeItem(item);
+                      },
+                    ),
+                  );
+                },
+              );
+            }),
           ),
           Divider(
             color: Colors.pink[700],
             thickness: 5,
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              height: 100,
-              child: Text(
-                "Total: ${calculateTotal(items)}",
-                style: TextStyle(fontSize: 40.0, color: Colors.blue[900]),
+          Observer(builder: (_) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                height: 100,
+                child: Text(
+                  "Total: ${_cartStore.getTotal}",
+                  style: TextStyle(fontSize: 40.0, color: Colors.blue[900]),
+                ),
               ),
-            ),
-          )
+            );
+          })
         ],
       ),
     );
-  }
-
-  double calculateTotal(List<Item> items) {
-    return items
-        .map((item) => item.price)
-        .fold(0.0, (price1, price2) => price1 + price2);
   }
 }
